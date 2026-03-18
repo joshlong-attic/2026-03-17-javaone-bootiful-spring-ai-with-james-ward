@@ -117,11 +117,11 @@
             <groupId>org.springframework.ai</groupId>
             <artifactId>spring-ai-starter-model-bedrock-converse</artifactId>
         </dependency>
-        <dependency>
-            <groupId>org.springaicommunity</groupId>
-            <artifactId>mcp-server-security</artifactId>
-            <version>0.1.1</version>
-        </dependency>
+<!--        <dependency>-->
+<!--            <groupId>org.springaicommunity</groupId>-->
+<!--            <artifactId>mcp-server-security</artifactId>-->
+<!--            <version>0.1.1</version>-->
+<!--        </dependency>-->
     </dependencies>
     <dependencyManagement>
         <dependencies>

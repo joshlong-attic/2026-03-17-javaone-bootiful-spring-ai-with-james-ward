@@ -26,6 +26,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import javax.sql.DataSource;
 import java.net.URI;
 import java.net.http.HttpRequest;
+import java.security.Principal;
 
 @SpringBootApplication
 public class Application {
@@ -117,10 +118,14 @@ class PoochPalaceController {
     }
 
     @GetMapping("/ask")
-    String ask(@RequestParam String question) {
+// Disabled for testing auth
+//    String ask(@RequestParam String question) {
+    String ask(Principal principal) {
+        System.out.println(principal);
+
         return this.ai
                 .prompt()
-                .user(question)
+                .user("do you have any dogs available?")
                 .call()
                 .content();
     }
