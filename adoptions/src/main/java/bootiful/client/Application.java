@@ -1,7 +1,6 @@
 package bootiful.client;
 
 import io.modelcontextprotocol.client.transport.customizer.McpSyncHttpClientRequestCustomizer;
-import io.modelcontextprotocol.common.McpTransportContext;
 import org.springaicommunity.agent.tools.SkillsTool;
 import org.springaicommunity.mcp.security.client.sync.AuthenticationMcpTransportContextProvider;
 import org.springaicommunity.mcp.security.client.sync.oauth2.http.client.OAuth2AuthorizationCodeSyncHttpRequestCustomizer;
@@ -20,12 +19,9 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClientManager;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import javax.sql.DataSource;
-import java.net.URI;
-import java.net.http.HttpRequest;
 import java.security.Principal;
 
 @SpringBootApplication
@@ -47,22 +43,7 @@ public class Application {
         return new OAuth2AuthorizationCodeSyncHttpRequestCustomizer(authorizeRequest, "spring");
     }
 
-//    @Bean
-//    McpSyncHttpClientRequestCustomizer
-//    mcpSyncHttpClientRequestCustomizer () {
-//        return new McpSyncHttpClientRequestCustomizer() {
-//            @Override
-//            public void customize(HttpRequest.Builder builder, String method, URI endpoint, String body, McpTransportContext context) {
-//
-//            }
-//        }
-//    }
 
-//    @Bean
-//    McpSyncClientCustomizer mcpSyncClientCustomizer() {
-//        return (s, syncSpec) -> syncSpec
-//                .transportContextProvider(new AuthenticationMcpTransportContextProvider());
-//    }
 
     @Bean
     PromptChatMemoryAdvisor promptChatMemoryAdvisor(DataSource dataSource) {
@@ -118,14 +99,12 @@ class PoochPalaceController {
     }
 
     @GetMapping("/ask")
-// Disabled for testing auth
-//    String ask(@RequestParam String question) {
     String ask(Principal principal) {
-        System.out.println(principal);
+        IO.println(principal);
 
         return this.ai
                 .prompt()
-                .user("do you have any dogs available?")
+                .user("do you have any neurotic dogs?")
                 .call()
                 .content();
     }
