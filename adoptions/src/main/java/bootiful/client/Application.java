@@ -1,6 +1,7 @@
 package bootiful.client;
 
-import io.modelcontextprotocol.client.transport.customizer.McpSyncHttpClientRequestCustomizer;
+import io.modelcontextprotocol.client.McpClient;
+import io.modelcontextprotocol.client.transport.HttpClientStreamableHttpTransport;
 import org.springaicommunity.agent.tools.SkillsTool;
 import org.springaicommunity.mcp.security.client.sync.AuthenticationMcpTransportContextProvider;
 import org.springaicommunity.mcp.security.client.sync.oauth2.http.client.OAuth2AuthorizationCodeSyncHttpRequestCustomizer;
@@ -9,20 +10,25 @@ import org.springframework.ai.chat.client.advisor.PromptChatMemoryAdvisor;
 import org.springframework.ai.chat.client.advisor.vectorstore.QuestionAnswerAdvisor;
 import org.springframework.ai.chat.memory.MessageWindowChatMemory;
 import org.springframework.ai.chat.memory.repository.jdbc.JdbcChatMemoryRepository;
-//import org.springframework.ai.mcp.customizer.McpSyncClientCustomizer;
+import org.springframework.ai.mcp.client.common.autoconfigure.configurer.McpSyncClientConfigurer;
+import org.springframework.ai.mcp.customizer.McpClientCustomizer;
 import org.springframework.ai.tool.ToolCallbackProvider;
 import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.security.config.Customizer;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClientManager;
+import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import javax.sql.DataSource;
 import java.security.Principal;
+import java.util.List;
 
 @SpringBootApplication
 public class Application {
@@ -39,11 +45,27 @@ public class Application {
     }
 
     @Bean
-    OAuth2AuthorizationCodeSyncHttpRequestCustomizer auth2AuthorizationCodeSyncHttpRequestCustomizer(OAuth2AuthorizedClientManager authorizeRequest) {
-        return new OAuth2AuthorizationCodeSyncHttpRequestCustomizer(authorizeRequest, "spring");
+    SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        return http
+                .authorizeHttpRequests(auth -> auth.anyRequest().authenticated())
+                .oauth2Login(login -> login
+                        .loginPage("/oauth2/authorization/spring"))
+                .oauth2Client(Customizer.withDefaults())
+                .build();
     }
 
+    @Bean
+    McpClientCustomizer<HttpClientStreamableHttpTransport.Builder> mcpTransportCustomizer(OAuth2AuthorizedClientManager authorizedClientManager) {
+        var requestCustomizer = new OAuth2AuthorizationCodeSyncHttpRequestCustomizer(authorizedClientManager, "spring");
+        return (name, builder) -> builder.httpRequestCustomizer(requestCustomizer);
+    }
 
+    @Bean
+    McpSyncClientConfigurer mcpSyncClientConfigurer() {
+        McpClientCustomizer<McpClient.SyncSpec> c =
+                (name, spec) -> spec.transportContextProvider(new AuthenticationMcpTransportContextProvider());
+        return new McpSyncClientConfigurer(List.of(c));
+    }
 
     @Bean
     PromptChatMemoryAdvisor promptChatMemoryAdvisor(DataSource dataSource) {
@@ -104,7 +126,7 @@ class PoochPalaceController {
 
         return this.ai
                 .prompt()
-                .user("do you have any neurotic dogs?")
+                .user("schedule time to pick prancer, id 47 from pooch palace")
                 .call()
                 .content();
     }
